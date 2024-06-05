@@ -1,3 +1,5 @@
+// MainActivity.java
+
 package com.example.weatherapp;
 
 import android.Manifest;
@@ -6,9 +8,10 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.util.Date;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,12 +27,14 @@ import com.android.volley.toolbox.Volley;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
-import java.text.SimpleDateFormat;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -40,10 +45,12 @@ public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient fusedLocationClient;
     private TextView textLocation;
     private TextView textTime;
-    private TextView textTemperature;
-    private TextView textHumidity;
-    private TextView textWeatherDescription;
+    private TextView textTemperature; // Changed variable name from textTemp to textTemperature
+    private TextView textHumidity; // Changed variable name from textHumid to textHumidity
+    private TextView textWeatherDescription; // Changed variable name from textDesc to textWeatherDescription
     private TextView textAddress;
+    private EditText editCity;
+    private Button btnFetchWeather;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,8 +63,19 @@ public class MainActivity extends AppCompatActivity {
         textHumidity = findViewById(R.id.textHumidity);
         textWeatherDescription = findViewById(R.id.textWeatherDescription);
         textAddress = findViewById(R.id.textAddress);
+        editCity = findViewById(R.id.editCity);
+        btnFetchWeather = findViewById(R.id.btnFetchWeather);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        btnFetchWeather.setOnClickListener(view -> {
+            String city = editCity.getText().toString().trim();
+            if (!city.isEmpty()) {
+                fetchWeatherDataByCity(city);
+            } else {
+                getLocation();
+            }
+        });
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
@@ -67,6 +85,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location location) {
@@ -120,6 +141,43 @@ public class MainActivity extends AppCompatActivity {
         queue.add(jsonObjectRequest);
     }
 
+    private void fetchWeatherDataByCity(String city) {
+        String apiKey = "a2f2c66265e75b3c23b15564f037cd76"; // Replace "YOUR_API_KEY" with your actual OpenWeatherMap API key
+        String apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + apiKey;
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                (Request.Method.GET, apiUrl, null, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            JSONObject main = response.getJSONObject("main");
+                            double temperatureKelvin = main.getDouble("temp");
+                            double temperatureCelsius = temperatureKelvin - 273.15; // Convert temperature from Kelvin to Celsius
+                            int humidity = main.getInt("humidity");
+                            JSONArray weatherArray = response.getJSONArray("weather");
+                            JSONObject weatherObject = weatherArray.getJSONObject(0);
+                            String description = weatherObject.getString("description");
+
+                            // Update UI with weather data
+                            updateWeatherUI(temperatureCelsius, humidity, description);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Toast.makeText(MainActivity.this, "Error parsing weather data", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        error.printStackTrace();
+                        Toast.makeText(MainActivity.this, "Error fetching weather data", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        // Add the request to the RequestQueue.
+        RequestQueue queue = Volley.newRequestQueue(this);
+        queue.add(jsonObjectRequest);
+    }
+
     private void fetchAddress(double latitude, double longitude) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
@@ -136,9 +194,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateWeatherUI(double temperature, int humidity, String description) {
         String formattedTemperature = String.format(Locale.getDefault(), "%.2f", temperature);
-        textTemperature.setText("Temperature: " + formattedTemperature + "°C");
-        textHumidity.setText("Humidity: " + humidity + "%");
-        textWeatherDescription.setText("Weather: " + description);
+        textTemperature.setText("Temperature: " + formattedTemperature + "°C"); // Update temperature text view
+        textHumidity.setText("Humidity: " + humidity + "%"); // Update humidity text view
+        textWeatherDescription.setText("Weather: " + description); // Update weather description text view
 
         // Display current time
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
