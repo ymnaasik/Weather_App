@@ -5,13 +5,23 @@ It fetches the weather data from the OpenWeatherMap API and displays information
 
 **Features**
 
-  Fetches current weather details based on user's location.
-  Displays weather information including temperature, humidity, and description.
-  Shows the user's current address.
-  Updates the weather information in real-time.
-  Displays the current time.
+  Fetches current weather details based on user's location. <br>
+  Displays weather information including temperature, humidity, and description. <br>
+  Shows the user's current address. <br>
+  Updates the weather information in real-time. <br>
+  Displays the current time. <br>
+  Additional features: 
+  
+      Search History: Keeps track of recently searched cities for easy access to weather information. 
+      
+      Unit Conversion: Provides options to switch between Celsius and Fahrenheit temperature units. 
+      
+      Error Handling: Alerts the user with informative messages in case of network errors or invalid city names. 
 
   ![image](https://github.com/ymnaasik/Weather_App/assets/160098895/b9d592fd-5df9-45ae-b0f4-13ec0ae82414)
+  ![image](https://github.com/ymnaasik/Weather_App/assets/160098895/d6c1c1a3-60ce-4c9f-91dc-ac7f3670405b)
+  ![image](https://github.com/ymnaasik/Weather_App/assets/160098895/0d79c1ca-1613-4cb7-9730-6ef91622db06)
+  ![image](https://github.com/ymnaasik/Weather_App/assets/160098895/cbc10409-fee0-4537-8d20-a10a368bc61f)
 
   
 **Setup Instructions**
